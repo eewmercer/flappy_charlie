@@ -47,15 +47,50 @@ var rect = {
     y: boardHeight/1.5,
     width: 800,
     height: 350,
-  };
+};
 
-function moveCharlieTouchScreen() {
-    velocityY = -15;
+//sounds
+let crash = new Audio("crash.mp3");
+let flap = new Audio("flap.mp3"); // done
+let music = new Audio("music.mp3");
+music.loop = true;
+
+function resetGame() {
+    charlie.y = charlieY;
+    velocityY = 0;
+  
+    wallArray = [];
+  
+    score = 0;
+    gameOver = false;
+  
+    context.drawImage(background, 0, 0, board.width, board.height);
+    context.drawImage(charlieImage, charlie.x, charlie.y, charlie.width, charlie.height);
+  }
+  
+
+function moveCharlieTouchScreen(e) {
+    var mousePos = getMousePos(board, e);
+
+    if (isInside(mousePos, rect)) {
+        console.log('Restart button tapped');
+    } else {
+        flap.play();
+        velocityY = -15;
+    }
 }
 
 function moveCharlieKeyboard(e) {
+    var mousePos = getMousePos(board, e);
+
     if (e.code === 'Space') {
-        velocityY = -15;
+        if (isInside(mousePos, rect)) {
+            console.log('Restart button tapped');
+        } else {
+            e.preventDefault();
+            flap.play();
+            velocityY = -15;
+        }
     }
 }
 
@@ -70,25 +105,33 @@ function Playbutton(rect) {
     context.closePath();
     context.font = '150px Pixelify Sans';
     context.fillStyle = 'white';
-    context.fillText('Restart', rect.x + 70, rect.y + 230); //rect.x + rect.width / 4
+    context.fillText('Restart', rect.x + 70, rect.y + 230); 
 }
 
 function getMousePos(board, e) {
     var rect = board.getBoundingClientRect();
-    const scaleX = board.width / rect.width;  
+    const scaleX = board.width / rect.width;
     const scaleY = board.height / rect.height;
 
+    let clientX = e.clientX;
+    let clientY = e.clientY;
+
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    }
+
     return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY,
     };
-  }
+}
   
 function isInside(pos, rect) {
 return pos.x > rect.x && pos.x < rect.x + rect.width && pos.y < rect.y + rect.height && pos.y > rect.y
 }
 
-window.onload = function() {
+function startGame() {
     board = document.querySelector("#board");
     board.height = boardHeight;
     board.width = boardWidth;
@@ -113,13 +156,10 @@ window.onload = function() {
     //button click event
     board.addEventListener('click', function(e) {
         if (!gameOver) return;
-
         var mousePos = getMousePos(board, e);
-        console.log("Mouse pos:", mousePos);
-        console.log("Button rect:", rect);
 
-        if (isInside(mousePos, rect)) {
-            location.reload();
+        if (isInside(mousePos, rect) && gameOver) {
+            resetGame();
         } 
     }, false);
 
@@ -127,6 +167,16 @@ window.onload = function() {
     setInterval(placeWalls, 1500);
     document.addEventListener("touchstart", moveCharlieTouchScreen);
     document.addEventListener("keydown", moveCharlieKeyboard);
+}
+
+window.onload = function() {
+    const start = document.getElementById("start");
+    const title_screen = document.getElementById("title_screen");
+    start.addEventListener("click", () => {
+      music.play();
+      title_screen.style.display = "none";
+      startGame(); 
+    });
 }
 
 function update() {
@@ -175,6 +225,7 @@ function update() {
     context.fillText(score, 1800, board.height/4);
 
     if (gameOver) {
+        crash.play();
         context.fillText("GAME OVER", board.width/4, board.height/2)
         Playbutton(rect);
     }
