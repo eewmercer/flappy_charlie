@@ -153,7 +153,7 @@ function startGame() {
     bottomWallImage = new Image();
     bottomWallImage.src = "bottomWallImage.svg"
 
-    //button click event
+    //button click event slayyyy
     board.addEventListener('click', function(e) {
         if (!gameOver) return;
         var mousePos = getMousePos(board, e);
