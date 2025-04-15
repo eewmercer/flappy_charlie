@@ -4,6 +4,10 @@ const boardWidth = 3840;
 const boardHeight = 2160;
 let context;
 
+//animation frame
+let animationFrameId;
+let resetTimeout;
+
 //background
 let background = new Image();
 background.src = 'background.svg'
@@ -30,6 +34,7 @@ let wallWidth = 500;
 let wallHeight = 1200;
 let wallX = boardWidth;
 let topWallY = 0;
+let wallInterval;
 
 let topWallImage;
 
@@ -51,11 +56,27 @@ var rect = {
 
 //sounds
 let crash = new Audio("crash.mp3");
-let flap = new Audio("flap.mp3"); // done
+let flap = new Audio("flap.mp3");
 let music = new Audio("music.mp3");
 music.loop = true;
 
-function resetGame() {
+function titleScreen() {
+    const canvas = document.getElementById("board");
+    const start = document.getElementById("start");
+    const title_screen = document.getElementById("title_screen");
+
+    canvas.style.display = "none";
+    title_screen.style.display = "flex";
+
+    start.addEventListener("click", () => {
+      title_screen.style.display = "none";
+      canvas.style.display = "block";
+      music.play();
+      startGame(); 
+    });
+}
+
+function resetVariables() {
     charlie.y = charlieY;
     velocityY = 0;
   
@@ -63,6 +84,10 @@ function resetGame() {
   
     score = 0;
     gameOver = false;
+}
+
+function resetGame() {
+    resetVariables();
   
     context.drawImage(background, 0, 0, board.width, board.height);
     context.drawImage(charlieImage, charlie.x, charlie.y, charlie.width, charlie.height);
@@ -132,6 +157,11 @@ return pos.x > rect.x && pos.x < rect.x + rect.width && pos.y < rect.y + rect.he
 }
 
 function startGame() {
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
+    
+    resetVariables();
     board = document.querySelector("#board");
     board.height = boardHeight;
     board.width = boardWidth;
@@ -158,28 +188,24 @@ function startGame() {
         var mousePos = getMousePos(board, e);
 
         if (isInside(mousePos, rect) && gameOver) {
+            clearTimeout(resetTimeout); 
             resetGame();
-        } 
+        }
     }, false);
 
-    requestAnimationFrame(update);
-    setInterval(placeWalls, 1500);
+    animationFrameId = requestAnimationFrame(update);
+    clearInterval(wallInterval); 
+    wallInterval = setInterval(placeWalls, 2000);
     document.addEventListener("touchstart", moveCharlieTouchScreen);
     document.addEventListener("keydown", moveCharlieKeyboard);
 }
 
 window.onload = function() {
-    const start = document.getElementById("start");
-    const title_screen = document.getElementById("title_screen");
-    start.addEventListener("click", () => {
-      music.play();
-      title_screen.style.display = "none";
-      startGame(); 
-    });
+    titleScreen();
 }
 
 function update() {
-    requestAnimationFrame(update);
+    animationFrameId = requestAnimationFrame(update);
 
     if (gameOver) {
         return;
@@ -227,6 +253,11 @@ function update() {
         crash.play();
         context.fillText("GAME OVER", board.width/4, board.height/2)
         Playbutton(rect);
+
+        resetTimeout = setTimeout(() => {
+            titleScreen(); 
+        }, 10000); 
+        
     }
 }
 
