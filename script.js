@@ -13,8 +13,8 @@ let background = new Image();
 background.src = 'background.svg'
 
 //charlie
-let charlieWidth = 400;
-let charlieHeight = 400;
+let charlieWidth = 350;
+let charlieHeight = 300;
 let charlieX = boardWidth/5;
 let charlieY = boardHeight/2.5;
 
@@ -95,11 +95,12 @@ function resetGame() {
   
 
 function moveCharlieTouchScreen(e) {
+    e.preventDefault();
     var mousePos = getMousePos(board, e);
 
-    if (isInside(mousePos, rect)) {
+    if (gameOver && isInside(mousePos, rect)) {
         console.log('Restart button tapped');
-    } else {
+    } else if (!gameOver) {
         flap.play();
         velocityY = -15;
     }
@@ -109,9 +110,9 @@ function moveCharlieKeyboard(e) {
     var mousePos = getMousePos(board, e);
 
     if (e.code === 'Space') {
-        if (isInside(mousePos, rect)) {
+        if (gameOver && isInside(mousePos, rect)) {
             console.log('Restart button tapped');
-        } else {
+        } else if (!gameOver) {
             e.preventDefault();
             flap.play();
             velocityY = -15;
@@ -257,7 +258,6 @@ function update() {
         resetTimeout = setTimeout(() => {
             titleScreen(); 
         }, 10000); 
-        
     }
 }
 
