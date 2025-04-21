@@ -99,7 +99,21 @@ function moveCharlieTouchScreen(e) {
     var mousePos = getMousePos(board, e);
 
     if (gameOver && isInside(mousePos, rect)) {
-        console.log('Restart button tapped');
+        clearTimeout(resetTimeout); 
+        resetGame();
+    } else if (!gameOver) {
+        flap.play();
+        velocityY = -15;
+    }
+}
+
+function moveCharlieClick(e) {
+    e.preventDefault();
+    var mousePos = getMousePos(board, e);
+
+    if (gameOver && isInside(mousePos, rect)) {
+        clearTimeout(resetTimeout); 
+        resetGame();
     } else if (!gameOver) {
         flap.play();
         velocityY = -15;
@@ -111,7 +125,8 @@ function moveCharlieKeyboard(e) {
 
     if (e.code === 'Space') {
         if (gameOver && isInside(mousePos, rect)) {
-            console.log('Restart button tapped');
+            clearTimeout(resetTimeout); 
+            resetGame();
         } else if (!gameOver) {
             e.preventDefault();
             flap.play();
@@ -184,25 +199,16 @@ function startGame() {
     bottomWallImage = new Image();
     bottomWallImage.src = "bottomWallImage.svg"
 
-    board.addEventListener('click', function(e) {
-        if (!gameOver) return;
-        var mousePos = getMousePos(board, e);
-
-        if (isInside(mousePos, rect) && gameOver) {
-            clearTimeout(resetTimeout); 
-            resetGame();
-        }
-    }, false);
-
     animationFrameId = requestAnimationFrame(update);
     clearInterval(wallInterval); 
     wallInterval = setInterval(placeWalls, 2000);
-    document.addEventListener("touchstart", moveCharlieTouchScreen);
-    document.addEventListener("keydown", moveCharlieKeyboard);
 }
 
 window.onload = function() {
     titleScreen();
+    document.addEventListener("touchstart", moveCharlieTouchScreen);
+    document.addEventListener("click", moveCharlieClick);
+    document.addEventListener("keydown", moveCharlieKeyboard);
 }
 
 function update() {
